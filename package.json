@@ -1,0 +1,15 @@
+{
+  "name": "installer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app-manager.js",
+  "scripts": {
+    "start": "node app-manager.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.61.0"
+  }
+}
