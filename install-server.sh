@@ -1,12 +1,13 @@
 ##################################################################################
 #!/bin/bash
-# To install: wget -P /tmp -L https://raw.githubusercontent.com/hodlerhacks/ccc-installer/master/install-server.sh install-server.sh; bash /tmp/install-server.sh
+# To install: wget -P /tmp -L https://raw.githubusercontent.com/hodlerhacks/ccc-installer/master/install-server.sh; bash /tmp/install-server.sh
 ##################################################################################
 VERSION="1.0.0"
 APPPATH=/var/opt
 INSTALLERFOLDER=ccc-installer
 APPSCRIPTREPOSITORY=https://github.com/hodlerhacks/ccc-installer.git
 APPMANAGER=app-manager.js
+APPNAME=App-Manager
 ##################################################################################
 bashrc_shortcuts=(installer)
 installer="'bash "$APPPATH"/"$INSTALLERFOLDER"/install-server.sh'"
@@ -61,22 +62,26 @@ start_app() {
 	check_installation
 
 	cd "$APPPATH"/"$INSTALLERFOLDER"
-	# First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-	pm2 stop App_Manager || true
-    pm2 start "app-manager.js" --name="App_Manager"
+
+	# If already running, stop to avoid duplicate processes running
+	if [ "$(pm2 id $APPNAME)" != "[]" ]; then
+		pm2 stop $APPNAME
+	fi
+
+    pm2 start "app-manager.js" --name="$APPNAME"
 	pm2 save
 }
 
 restart_app() { 
 	check_installation
 
-	pm2 restart App_Manager
+	pm2 restart $APPNAME
 }
 
 stop_app() { 
-	check_installation
-
-	pm2 stop App_Manager
+	if [ "$(pm2 id $APPNAME)" != "[]" ]; then
+		pm2 stop $APPNAME
+	fi
 }
 
 app_install() {
