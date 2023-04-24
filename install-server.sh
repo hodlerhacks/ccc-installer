@@ -64,7 +64,7 @@ start_app() {
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
 	# If already running, stop to avoid duplicate processes running
-	if [ "$(pm2 id $APPNAME)" != "[]" ]; then
+	if [ pm2 status $APPNAME -q | grep -q "online" ]; then
 		pm2 stop $APPNAME
 	fi
 
@@ -79,7 +79,7 @@ restart_app() {
 }
 
 stop_app() { 
-	if [ "$(pm2 id $APPNAME)" != "[]" ]; then
+	if [ pm2 status $APPNAME -q | grep -q "online" ]; then
 		pm2 stop $APPNAME
 	fi
 }
