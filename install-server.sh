@@ -59,19 +59,28 @@ fi
 }
 
 pm2_status() {
-	if [ pm2 pid $APPNAME ]; then
-		if [ pm2 describe $APPNAME | grep "status" | grep "online" ]; then
-			echo "online"
-		else 
-			if [ pm2 describe $APPNAME | grep "status" | grep "stopped" ]; then
-				echo "stopped"
-			else
-				echo "unknown"
-			fi
-		fi
+	pm2 describe $APPNAME > /dev/null
+	RUNNING=$?
+
+	if [ "${RUNNING}" -ne 0 ]; then
+		echo "online"
 	else
-		echo "unknown"
+		echo "online"
 	fi
+
+	# if [ pm2 pid $APPNAME ]; then
+	# 	if [ pm2 describe $APPNAME | grep "status" | grep "online" ]; then
+	# 		echo "online"
+	# 	else 
+	# 		if [ pm2 describe $APPNAME | grep "status" | grep "stopped" ]; then
+	# 			echo "stopped"
+	# 		else
+	# 			echo "unknown"
+	# 		fi
+	# 	fi
+	# else
+	# 	echo "unknown"
+	# fi
 	
 }
 
