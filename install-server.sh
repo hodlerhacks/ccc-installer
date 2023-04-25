@@ -162,18 +162,26 @@ press_enter() {
 }
 
 configure_telegram() {
+	if [ -f "$APPPATH"/"$INSTALLERFOLDER"/config.json ]; then
+		c_username = jq .telegramUsername config.json
+		c_token = jq .telegramToken config.json
+	else
+		c_username = ""
+		c_token = ""
+    fi
+
 	clear
 	echo ""
 	echo "  Create a new Telegram bot (unique for this application) and enter its details below"
 	echo ""
 
 	echo ""
-	echo -n "  > Enter Telegram username: "
-	read username
+	echo -n "  > Enter Telegram username: $c_username \c"
+	read username || c_username
 
 	echo ""
-	echo -n "  > Enter Telegram token: "
-	read token
+	echo -n "  > Enter Telegram token: $c_token \c"
+	read token || c_token
 
 	echo "{\"telegramUsername\":\"${username}\",\"telegramToken\":\"${token}\"}" > config.json
 }
