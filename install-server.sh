@@ -59,10 +59,10 @@ fi
 }
 
 pm2_status() {
-	if pm2 list | grep -q "^│ $APPNAME │ online"; then
+	if pm2 describe $APPNAME | grep "status" | grep "online"; then
 		echo "online"
 	else 
-		if pm2 describe $APPNAME >/dev/null 2>&1; then
+		if pm2 describe $APPNAME | grep "status" | grep "stopped"; then
 			echo "stopped"
 		else
 			echo "unknown"
