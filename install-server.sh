@@ -44,76 +44,53 @@ check_bashrc_shortcuts() {
 }
 
 check_installation() {
-# If node_modules is not available
-if [ ! -d "$APPPATH"/"$INSTALLERFOLDER"/node_modules ]; then
-	clear
-	echo ""
-	echo "  Application Manager has not been installed yet"
-	echo ""
-	echo "  Starting installation..."
-	echo ""
+	# If node_modules is not available
+	if [ ! -d "$APPPATH"/"$INSTALLERFOLDER"/node_modules ]; then
+		clear
+		echo ""
+		echo "  Application Manager has not been installed yet"
+		echo ""
+		echo "  Starting installation..."
+		echo ""
 
-	press_enter
-	app_install
-fi
-}
-
-pm2_status() {
-	pm2 describe $APPNAME > /dev/null
-	RUNNING=$?
-
-	if [ "${RUNNING}" -ne 0 ]; then
-		echo "offline"
-	else
-		echo "online"
+		press_enter
+		app_install
 	fi
-
-	# if [ pm2 pid $APPNAME ]; then
-	# 	if [ pm2 describe $APPNAME | grep "status" | grep "online" ]; then
-	# 		echo "online"
-	# 	else 
-	# 		if [ pm2 describe $APPNAME | grep "status" | grep "stopped" ]; then
-	# 			echo "stopped"
-	# 		else
-	# 			echo "unknown"
-	# 		fi
-	# 	fi
-	# else
-	# 	echo "unknown"
-	# fi
-	
 }
-
-PM2_STATUS=$(pm2 list 2> /dev/null | grep $APPNAME | grep -o online)
 
 start_app() { 
+	echo "Starting App Manager..."
+	echo ""
+
 	check_installation
 
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
 	# If already exists and running, just show it's already running
 	if [ "$(pm2 list 2> /dev/null | grep $APPNAME | grep -o online)" = "online" ]; then
-		echo "online"
 		pm2 list
 	else
-		echo "offline"
 		pm2 start "app-manager.js" --name="$APPNAME"
 		pm2 save
 	fi
 }
 
 restart_app() { 
+	echo "Restarting App Manager..."
+	echo ""
+
 	check_installation
 
 	pm2 restart $APPNAME
 }
 
 stop_app() { 
+	echo "Stopping App Manager..."
+	echo ""
+
 	if [ "$(pm2 list 2> /dev/null | grep $APPNAME | grep -o online)" = "online" ]; then
-		echo "online"
 		pm2 stop $APPNAME
 	else
-		echo "offline"
 		pm2 list
 	fi
 }
@@ -135,7 +112,9 @@ app_install() {
 script_install() {
 	# Save config files
 	if [ -f "$APPPATH"/"$INSTALLERFOLDER"/config.json ]; then
-		mkdir /tmp/
+		if [ ! -d /tmp ]; then
+			mkdir /tmp
+		fi
 		cp -a "$APPPATH"/"$INSTALLERFOLDER"/config.json /tmp/
     fi
 
