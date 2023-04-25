@@ -164,12 +164,12 @@ configure_telegram() {
 
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
-	username = ""
-	token = ""
+	username=""
+	token=""
 
 	if [ -f "$APPPATH"/"$INSTALLERFOLDER"/config.json ]; then
-		username = jq .telegramUsername config.json
-		token = jq .telegramToken config.json
+		username=jq .telegramUsername config.json
+		token=jq .telegramToken config.json
 
 		echo "exists: $username"
     fi
