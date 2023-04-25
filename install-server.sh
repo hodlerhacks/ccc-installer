@@ -58,13 +58,25 @@ if [ ! -d "$APPPATH"/"$INSTALLERFOLDER"/node_modules ]; then
 fi
 }
 
+pm2_status() {
+	if pm2 list | grep -q "^│ $APPNAME │ online"; then
+		echo "online"
+	else 
+		if pm2 describe $APPNAME >/dev/null 2>&1; then
+			echo "stopped"
+		else
+			echo "unknown"
+		fi
+	fi
+}
+
 start_app() { 
 	check_installation
 
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
 	# If already exists and running, just show it's already running
-	if pm2 describe $APPNAME | grep -q "\"status\": \"online\""; then
+	if [ "$(pm2_status)" = "online" ]; then
 		pm2 list
 	else
 		pm2 start "app-manager.js" --name="$APPNAME"
@@ -79,7 +91,7 @@ restart_app() {
 }
 
 stop_app() { 
-	if pm2 describe $APPNAME | grep -q "\"status\": \"online\""; then
+	if [ "$(pm2_status)" = "online" ]; then
 		pm2 stop $APPNAME
 	else
 		pm2 list
