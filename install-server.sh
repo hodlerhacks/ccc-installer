@@ -160,6 +160,8 @@ press_enter() {
 }
 
 configure_telegram() {
+	clear
+
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
 	username = ""
@@ -172,7 +174,6 @@ configure_telegram() {
 		echo "exists: $username"
     fi
 
-	clear
 	echo ""
 	echo "  Create a new Telegram bot (unique for this application) and enter its details below"
 	echo ""
