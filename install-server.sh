@@ -65,7 +65,7 @@ pm2_status() {
 	if [ "${RUNNING}" -ne 0 ]; then
 		echo "online"
 	else
-		echo "online"
+		echo "offline"
 	fi
 
 	# if [ pm2 pid $APPNAME ]; then
