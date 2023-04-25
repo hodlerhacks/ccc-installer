@@ -168,6 +168,8 @@ configure_telegram() {
 	if [ -f config.json ]; then
 		username = jq .telegramUsername config.json
 		token = jq .telegramToken config.json
+
+		echo "exists: $username"
     fi
 
 	clear
