@@ -84,7 +84,7 @@ pm2_status() {
 	
 }
 
-PM2_STATUS=$(pm2 list 2> /dev/null | grep -q $APPNAME | grep -qo online)
+PM2_STATUS=$(pm2 list 2> /dev/null | grep $APPNAME | grep -o online)
 
 start_app() { 
 	check_installation
