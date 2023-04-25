@@ -80,8 +80,11 @@ start_app() {
 
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
+	echo "$(pm2_status)"
+	press_enter
+
 	# If already exists and running, just show it's already running
-	if [ $pm2_status = online ]; then
+	if [ "$(pm2_status)" = "online" ]; then
 		pm2 list
 	else
 		pm2 start "app-manager.js" --name="$APPNAME"
