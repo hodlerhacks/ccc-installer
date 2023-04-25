@@ -64,8 +64,6 @@ start_app() {
 
 	check_installation
 
-	cd "$APPPATH"/"$INSTALLERFOLDER"
-
 	# If already exists and running, just show it's already running
 	if [ "$(pm2 list 2> /dev/null | grep $APPNAME | grep -o online)" = "online" ]; then
 		pm2 list
@@ -162,12 +160,14 @@ press_enter() {
 }
 
 configure_telegram() {
-	c_username = ""
-	c_token = ""
+	cd "$APPPATH"/"$INSTALLERFOLDER"
 
-	if [ -f "$APPPATH"/"$INSTALLERFOLDER"/config.json ]; then
-		c_username = jq .telegramUsername "$APPPATH"/"$INSTALLERFOLDER"/config.json
-		c_token = jq .telegramToken "$APPPATH"/"$INSTALLERFOLDER"/config.json
+	username = ""
+	token = ""
+
+	if [ -f config.json ]; then
+		username = jq .telegramUsername config.json
+		token = jq .telegramToken config.json
     fi
 
 	clear
@@ -176,12 +176,15 @@ configure_telegram() {
 	echo ""
 
 	echo ""
-	echo -n "  > Enter Telegram username: $c_username \c"
-	read username || c_username
+	echo -n "  > Enter Telegram username: $username"
+	read new_username
 
 	echo ""
-	echo -n "  > Enter Telegram token: $c_token \c"
-	read token || c_token
+	echo -n "  > Enter Telegram token: $token"
+	read new_token
+
+	[ -n "$new_username" ] && username=$new_username
+	[ -n "$new_token" ] && token=$new_token
 
 	echo "{\"telegramUsername\":\"${username}\",\"telegramToken\":\"${token}\"}" > config.json
 }
