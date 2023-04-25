@@ -135,7 +135,6 @@ script_install() {
 
 script_update() {
 	script_install
-	check_bashrc_shortcuts
 
 	if [ -f /tmp/install-server.sh ]; then
 		rm -r /tmp/install-server.sh
