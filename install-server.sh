@@ -64,7 +64,7 @@ start_app() {
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
 	# If already exists and running, just show it's already running
-	if pm2 status $APPNAME -m | grep -q "online"; then
+	if pm2 list | grep -q "^│ $APPNAME │ online"; then
 		pm2 list
 	else
 		pm2 start "app-manager.js" --name="$APPNAME"
@@ -79,7 +79,7 @@ restart_app() {
 }
 
 stop_app() { 
-	if pm2 status $APPNAME -m | grep -q "online"; then
+	if pm2 list | grep -q "^│ $APPNAME │ online"; then
 		pm2 stop $APPNAME
 	else
 		pm2 list
