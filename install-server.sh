@@ -84,18 +84,18 @@ pm2_status() {
 	
 }
 
-PM2_ONLINE=$(if pm2 list 2> /dev/null | grep -q $APPNAME | grep -q "online"; then echo "Yes" ; else echo "No" ; fi)
+PM2_STATUS=$(pm2 list 2> /dev/null | grep -q $APPNAME | grep -qo online)
 
 start_app() { 
 	check_installation
 
 	cd "$APPPATH"/"$INSTALLERFOLDER"
 
-	echo "$PM2_ONLINE"
+	echo "$PM2_STATUS"
 	press_enter
 
 	# If already exists and running, just show it's already running
-	if [ $PM2_ONLINE = Yes ]; then
+	if [ $PM2_STATUS = online ]; then
 		pm2 list
 	else
 		pm2 start "app-manager.js" --name="$APPNAME"
@@ -110,7 +110,7 @@ restart_app() {
 }
 
 stop_app() { 
-	if [ $PM2_ONLINE = Yes ]; then
+	if [ $PM2_STATUS = online ]; then
 		pm2 stop $APPNAME
 	else
 		pm2 list
