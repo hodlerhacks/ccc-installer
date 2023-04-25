@@ -162,12 +162,12 @@ press_enter() {
 }
 
 configure_telegram() {
+	c_username = ""
+	c_token = ""
+
 	if [ -f "$APPPATH"/"$INSTALLERFOLDER"/config.json ]; then
 		c_username = jq .telegramUsername "$APPPATH"/"$INSTALLERFOLDER"/config.json
 		c_token = jq .telegramToken "$APPPATH"/"$INSTALLERFOLDER"/config.json
-	else
-		c_username = ""
-		c_token = ""
     fi
 
 	clear
