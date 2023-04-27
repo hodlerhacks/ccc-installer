@@ -22,6 +22,8 @@ function initTelegram() {
 
         if (apps.length == 0) {
             tgBot.sendMessage(ctx.chat.id, `No apps installed`).catch((err) => { telegramError(err) });
+        } else if (apps.length == 1) {
+            handleAppAction(apps[0], ctx);
         } else {
             let keyboard = [];
             let keyboardRow = [];
@@ -38,79 +40,83 @@ function initTelegram() {
                     inline_keyboard: keyboard
                 }
             }).catch((err) => { telegramError(err) });
-        }
 
-        tgBot.on("callback_query", async (callbackQuery) => {
-            const selectedApp = callbackQuery.data;
-            const ctx = callbackQuery.message;
-            tgBot.answerCallbackQuery(callbackQuery.id).then(async () => {
-                tgBot.sendMessage(ctx.chat.id, `What to do with your application?`, {
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                {
-                                    text: "Start",
-                                    callback_data: 'start'
-                                },
-                                {
-                                    text: "Stop",
-                                    callback_data: 'stop'
-                                },
-                                {
-                                    text: "Restart",
-                                    callback_data: 'restart'
-                                },
-                                {
-                                    text: "Install",
-                                    callback_data: 'install'
-                                },
-                            ],
-                        ]
-                    }
-                }).catch((e) => { console.log(e) });
-                tgBot.on("callback_query", async (callbackQuery) => {
-                    const selection = callbackQuery.data;
-                    const ctx = callbackQuery.message;
-                    tgBot.answerCallbackQuery(callbackQuery.id).then(async () => {
-                        if (selection == 'start') {
-                            // Get entry point from package.json
-                            const json = await getJson(apppath + selectedApp + '/package.json');
-                            const main = json.main;
-                            const mainExists = fs.existsSync(apppath + selectedApp + '/' + main);
-                            if (!main) {
-                                await tgBot.sendMessage(ctx.chat.id, `No main file specified in package.json`).catch((e) => { console.log(e) });
-                            } else if (!mainExists) {
-                                await tgBot.sendMessage(ctx.chat.id, `The main file specified in package.json does not exist`).catch((e) => { console.log(e) });
-                            } else {
-                                await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
-                                // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-                                execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                                execSync(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                                execSync(`pm2 save`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                                await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
-                            }
-                        }
-                        if (selection == 'stop') {
-                            await tgBot.sendMessage(ctx.chat.id, `Stopping application... please wait`).catch((e) => { console.log(e) });
-                            execSync(`pm2 stop ${selectedApp}`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                            await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
-                        }
-                        if (selection == 'restart') {
-                            await tgBot.sendMessage(ctx.chat.id, `Restarting application... please wait`).catch((e) => { console.log(e) });
-                            execSync(`pm2 restart ${selectedApp}`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                            await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
-                        }
-                        if (selection == 'install') {
-                            await tgBot.sendMessage(ctx.chat.id, `Installing application... please wait`).catch((e) => { console.log(e) });
-                            execSync(`npm install`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                            await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
-                        }
-                    });
-                    tgBot.removeListener("callback_query");
+            tgBot.on("callback_query", async (callbackQuery) => {
+                const selectedApp = callbackQuery.data;
+                const ctx = callbackQuery.message;
+                tgBot.answerCallbackQuery(callbackQuery.id).then(async () => {
+                    handleAppAction(selectedApp, ctx);
                 });
+                tgBot.removeListener("callback_query");
             });
-            tgBot.removeListener("callback_query");
+        }
+    });
+}
+
+function handleAppAction(selectedApp, ctx) {
+    tgBot.sendMessage(ctx.chat.id, `What to do with your application?`, {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "Start",
+                        callback_data: 'start'
+                    },
+                    {
+                        text: "Stop",
+                        callback_data: 'stop'
+                    },
+                    {
+                        text: "Restart",
+                        callback_data: 'restart'
+                    },
+                    {
+                        text: "Install",
+                        callback_data: 'install'
+                    },
+                ],
+            ]
+        }
+    }).catch((e) => { console.log(e) });
+    tgBot.on("callback_query", async (callbackQuery) => {
+        const selection = callbackQuery.data;
+        const ctx = callbackQuery.message;
+        tgBot.answerCallbackQuery(callbackQuery.id).then(async () => {
+            if (selection == 'start') {
+                // Get entry point from package.json
+                const json = await getJson(apppath + selectedApp + '/package.json');
+                const main = json.main;
+                const mainExists = fs.existsSync(apppath + selectedApp + '/' + main);
+                if (!main) {
+                    await tgBot.sendMessage(ctx.chat.id, `No main file specified in package.json`).catch((e) => { console.log(e) });
+                } else if (!mainExists) {
+                    await tgBot.sendMessage(ctx.chat.id, `The main file specified in package.json does not exist`).catch((e) => { console.log(e) });
+                } else {
+                    await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
+                    // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
+                    execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                    execSync(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                    execSync(`pm2 save`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                    await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
+                }
+            }
+            if (selection == 'stop') {
+                await tgBot.sendMessage(ctx.chat.id, `Stopping application... please wait`).catch((e) => { console.log(e) });
+                execSync(`pm2 stop ${selectedApp}`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
+            }
+            if (selection == 'restart') {
+                await tgBot.sendMessage(ctx.chat.id, `Restarting application... please wait`).catch((e) => { console.log(e) });
+                execSync(`pm2 restart ${selectedApp}`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
+            }
+            if (selection == 'install') {
+                await tgBot.sendMessage(ctx.chat.id, `Installing application... please wait`).catch((e) => { console.log(e) });
+                execSync(`npm install`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
+            }
         });
+        tgBot.removeListener("callback_query");
     });
 }
 
