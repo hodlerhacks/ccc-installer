@@ -54,7 +54,7 @@ function initTelegram() {
 }
 
 function handleAppAction(selectedApp, ctx) {
-    tgBot.sendMessage(ctx.chat.id, `What to do with your application?`, {
+    tgBot.sendMessage(ctx.chat.id, `What to do with <b>${selectedApp}</b>?`, { parse_mode: 'HTML' }, {
         reply_markup: {
             inline_keyboard: [
                 [
