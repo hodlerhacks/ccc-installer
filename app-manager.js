@@ -100,11 +100,11 @@ function handleAppAction(selectedApp, ctx) {
                         execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
                         output = execSync(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
                         execSync(`pm2 save`, { stdio: 'pipe', cwd: apppath + selectedApp });
+                        await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
+                        await tgBot.sendMessage(ctx.chat.id, output).catch((e) => { console.log(e) });
                     } catch (e) {
                         console.log('ERROR:', e)
                     }
-                    await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
-                    await tgBot.sendMessage(ctx.chat.id, output).catch((e) => { console.log(e) });
                 }
             }
             if (selection == 'stop') {
