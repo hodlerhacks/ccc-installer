@@ -145,6 +145,8 @@ function validateTelegram(ctx) {
 }
 
 async function execShell(cmd) {
+    console.log('Initiate:', cmd);
+
     shell.exec(cmd, (code, stdout, stderr) => {
         console.log('Command:', cmd);
         console.log('Exit code:', code);
