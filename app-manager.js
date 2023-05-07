@@ -146,17 +146,17 @@ function validateTelegram(ctx) {
 
 async function execShell(cmd) {
     console.log('Initiate:', cmd);
-    let code = false;
+    let code = null;
 
     shell.exec(cmd, (result, stdout, stderr) => {
         console.log('Command:', cmd);
-        console.log('Exit code:', code);
+        console.log('Exit code:', result);
         code = result;
         // console.log('Program output:', stdout);
         // console.log('Program stderr:', stderr);
     });
 
-    while (!code) {
+    while (code == null) {
         await sleep(100);
     }
 
