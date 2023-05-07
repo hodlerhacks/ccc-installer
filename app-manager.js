@@ -3,7 +3,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const configFile = 'config.json';
 const config = require(`./${configFile}`);
-const execSync = require('child_process').execSync;
 const shell = require('shelljs');
 const fs = require('fs');
 
@@ -55,6 +54,9 @@ function initTelegram() {
 }
 
 function handleAppAction(selectedApp, ctx) {
+    // Set working directoy for shell commands
+    shell.cd(apppath + selectedApp);
+
     tgBot.sendMessage(ctx.chat.id, `What to do with <b>${selectedApp}</b>?`, {
         parse_mode: 'HTML',
         reply_markup: {
@@ -96,28 +98,38 @@ function handleAppAction(selectedApp, ctx) {
                 } else {
                     await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
                     // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-                    execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                    shell.cd(apppath + selectedApp);
-                    execute(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                    execSync(`pm2 save`, { stdio: 'pipe', cwd: apppath + selectedApp });
-                    await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
-                    await tgBot.sendMessage(ctx.chat.id, output).catch((e) => { console.log(e) });
+                    execShell(`pm2 stop ${selectedApp} || true`);
+                    const code1 = execShell(`pm2 start "${main}" --name="${selectedApp}"`);
+                    const code2 = execShell(`pm2 save`);
+                    if (code1 + code2 == 0)
+                        await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
+                    else 
+                        await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
                 }
             }
             if (selection == 'stop') {
                 await tgBot.sendMessage(ctx.chat.id, `Stopping application... please wait`).catch((e) => { console.log(e) });
-                execSync(`pm2 stop ${selectedApp}`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
+                const code = execShell(`pm2 stop ${selectedApp}`);
+                if (code == 0)
+                    await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
+                else
+                    await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
             }
             if (selection == 'restart') {
                 await tgBot.sendMessage(ctx.chat.id, `Restarting application... please wait`).catch((e) => { console.log(e) });
-                execSync(`pm2 restart ${selectedApp}`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
+                const code = execShell(`pm2 restart ${selectedApp}`);
+                if (code == 0)
+                    await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
+                else
+                    await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
             }
             if (selection == 'install') {
                 await tgBot.sendMessage(ctx.chat.id, `Installing application... please wait`).catch((e) => { console.log(e) });
-                execSync(`npm install`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
+                const code = execShell(`npm install`);
+                if (code == 0)
+                    await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
+                else
+                    await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
             }
         });
         tgBot.removeListener("callback_query");
@@ -132,11 +144,12 @@ function validateTelegram(ctx) {
     return true;
 }
 
-async function execute(cmd) {
+async function execShell(cmd) {
     shell.exec(cmd, (code, stdout, stderr) => {
-        console.log('Exit code:', code);
-        console.log('Program output:', stdout);
-        console.log('Program stderr:', stderr);
+        return code;
+        // console.log('Exit code:', code);
+        // console.log('Program output:', stdout);
+        // console.log('Program stderr:', stderr);
     });
 }
 
