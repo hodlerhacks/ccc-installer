@@ -4,6 +4,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const configFile = 'config.json';
 const config = require(`./${configFile}`);
 const execSync = require('child_process').execSync;
+const shell = require('shelljs');
 const fs = require('fs');
 
 const apppath = '/var/opt/';
@@ -94,17 +95,13 @@ function handleAppAction(selectedApp, ctx) {
                     await tgBot.sendMessage(ctx.chat.id, `The main file specified in package.json does not exist`).catch((e) => { console.log(e) });
                 } else {
                     await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
-                    let output = 'empty';
                     // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-                    try {
-                        execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                        output = execSync(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                        execSync(`pm2 save`, { stdio: 'pipe', cwd: apppath + selectedApp });
-                        await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
-                        await tgBot.sendMessage(ctx.chat.id, output).catch((e) => { console.log(e) });
-                    } catch (e) {
-                        console.log('ERROR:', e)
-                    }
+                    execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                    shell.cd(apppath + selectedApp);
+                    execute(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                    execSync(`pm2 save`, { stdio: 'pipe', cwd: apppath + selectedApp });
+                    await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
+                    await tgBot.sendMessage(ctx.chat.id, output).catch((e) => { console.log(e) });
                 }
             }
             if (selection == 'stop') {
@@ -133,6 +130,14 @@ function validateTelegram(ctx) {
         return false;
     }
     return true;
+}
+
+async function execute(cmd) {
+    shell.exec(cmd, (code, stdout, stderr) => {
+        console.log('Exit code:', code);
+        console.log('Program output:', stdout);
+        console.log('Program stderr:', stderr);
+    });
 }
 
 function fetchApplications() {
