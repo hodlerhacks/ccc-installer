@@ -146,14 +146,21 @@ function validateTelegram(ctx) {
 
 async function execShell(cmd) {
     console.log('Initiate:', cmd);
+    let code = false;
 
-    shell.exec(cmd, (code, stdout, stderr) => {
+    shell.exec(cmd, (result, stdout, stderr) => {
         console.log('Command:', cmd);
         console.log('Exit code:', code);
-        return code;
+        code = result;
         // console.log('Program output:', stdout);
         // console.log('Program stderr:', stderr);
     });
+
+    while (!code) {
+        await sleep(100);
+    }
+
+    return code;
 }
 
 function fetchApplications() {
@@ -173,4 +180,8 @@ async function getJson(file) {
         console.log(`Couldn't read JSON file:`, err);
     }
     return json;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
