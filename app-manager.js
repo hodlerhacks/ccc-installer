@@ -94,10 +94,11 @@ function handleAppAction(selectedApp, ctx) {
                     await tgBot.sendMessage(ctx.chat.id, `The main file specified in package.json does not exist`).catch((e) => { console.log(e) });
                 } else {
                     await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
+                    let output;
                     // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
                     try {
                         execSync(`pm2 stop ${selectedApp} || true`, { stdio: 'inherit', cwd: apppath + selectedApp });
-                        const output = execSync(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
+                        output = execSync(`pm2 start "${main}" --name="${selectedApp}"`, { stdio: 'inherit', cwd: apppath + selectedApp });
                         execSync(`pm2 save`, { stdio: 'inherit', cwd: apppath + selectedApp });
                     } catch (e) {
                         console.log('ERROR:', e)
