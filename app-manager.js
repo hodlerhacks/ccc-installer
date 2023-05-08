@@ -54,8 +54,10 @@ function initTelegram() {
     tgBot.onText(/\/status/, async ctx => {
         if (!validateTelegram(ctx)) return;
         const [code, stdout] = await execShell(`pm2 status`);
-        if (code == 0)
-            tgBot.sendMessage(ctx.chat.id, stdout).catch((e) => { console.log(e) });
+        if (code == 0) {
+            const result = parsePm2Status(stdout);
+            tgBot.sendMessage(ctx.chat.id, result, { parse_mode: 'HTML' }).catch((e) => { console.log(e) });
+        }
         else
             await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
     });
@@ -142,6 +144,31 @@ function handleAppAction(selectedApp, ctx) {
         });
         tgBot.removeListener("callback_query");
     });
+}
+
+function parsePm2Status(stdout) {
+    let result = '<pre>';
+
+    const lines = stdout.split('\n');
+
+    const headers = lines[1];
+    const columnNames = headers.split('│').map((name) => name.trim());
+    const nameIndex = columnNames.indexOf('name');
+    const statusIndex = columnNames.indexOf('status');
+
+    for (let i = 3; i < lines.length; i++) {
+        const line = lines[i].trim();
+        const columns = line.split('│');
+
+        if (columns[0].trim() == 'Module') break;
+        if (columns.length >= statusIndex)
+            result += `${columns[nameIndex]?.trim()}: ${columns[statusIndex]?.trim()}\n`;
+
+    }
+
+    result += '</pre>';
+
+    return result;
 }
 
 function validateTelegram(ctx) {
