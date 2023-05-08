@@ -174,10 +174,10 @@ function parsePm2Status(stdout) {
         }
     }
 
-    const header = [{
+    const header = {
         name: 'Application',
         status: 'Status',
-    }];
+    };
 
     let result = '<pre>';
     result += `${header.name.padEnd(maxNameLength + 1, ' ')}| ${header.status}\n`;
