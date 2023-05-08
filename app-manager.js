@@ -148,7 +148,7 @@ function handleAppAction(selectedApp, ctx) {
 
 function parsePm2Status(stdout) {
     let apps = [];
-    let maxNameLength = 0;
+    let maxNameLength = 11;
     const lines = stdout.split('\n');
 
     const headers = lines[1];
@@ -174,10 +174,17 @@ function parsePm2Status(stdout) {
         }
     }
 
+    const header = [{
+        name: 'Application',
+        status: 'Status',
+    }];
+
     let result = '<pre>';
+    result += `${header.name.padEnd(maxNameLength + 1, ' ')}| ${header.status}\n`;
+    result += `${''.padEnd(maxNameLength + 10, ' ')}\n`;
 
     apps.forEach(app => {
-        result += `${app.name.padEnd(maxNameLength + 1, ' ')}: ${app.status}\n`;
+        result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.status}\n`;
     });
 
     result += '</pre>';
