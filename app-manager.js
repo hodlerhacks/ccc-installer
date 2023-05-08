@@ -181,7 +181,7 @@ function parsePm2Status(stdout) {
 
     let result = '<pre>';
     result += `${header.name.padEnd(maxNameLength + 1, ' ')}| ${header.status}\n`;
-    result += `${''.padEnd(maxNameLength + 10, ' ')}\n`;
+    result += `${''.padEnd(maxNameLength + 10, '-')}\n`;
 
     apps.forEach(app => {
         result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.status}\n`;
