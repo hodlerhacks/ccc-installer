@@ -21,7 +21,7 @@ function initTelegram() {
         const apps = fetchApplications();
 
         if (apps.length == 0) {
-            tgBot.sendMessage(ctx.chat.id, `No apps installed`).catch((err) => { telegramError(err) });
+            tgBot.sendMessage(ctx.chat.id, `No apps installed`).catch((e) => { console.log(e) });
         } else if (apps.length == 1) {
             handleAppAction(apps[0], ctx);
         } else {
@@ -39,7 +39,7 @@ function initTelegram() {
                 reply_markup: {
                     inline_keyboard: keyboard
                 }
-            }).catch((err) => { telegramError(err) });
+            }).catch((e) => { console.log(e) });
 
             tgBot.on("callback_query", async (callbackQuery) => {
                 const selectedApp = callbackQuery.data;
@@ -50,6 +50,14 @@ function initTelegram() {
                 tgBot.removeListener("callback_query");
             });
         }
+    });
+    tgBot.onText(/\/status/, async ctx => {
+        if (!validateTelegram(ctx)) return;
+        const [code, output] = await execShell(`pm2 status`);
+        if (code == 0)
+            tgBot.sendMessage(ctx.chat.id, `No apps installed`).catch((e) => { console.log(e) });
+        else
+            await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
     });
 }
 
@@ -98,9 +106,9 @@ function handleAppAction(selectedApp, ctx) {
                 } else {
                     await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
                     // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-                    const code0 = await execShell(`pm2 stop ${selectedApp} || true`);
-                    const code1 = await execShell(`pm2 start "${main}" --name="${selectedApp}"`);
-                    const code2 = await execShell(`pm2 save`);
+                    const code0 = await execShell(`pm2 stop ${selectedApp} || true`)[0];
+                    const code1 = await execShell(`pm2 start "${main}" --name="${selectedApp}"`)[0];
+                    const code2 = await execShell(`pm2 save`)[0];
                     if (code1 + code2 == 0)
                         await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
                     else 
@@ -109,7 +117,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'stop') {
                 await tgBot.sendMessage(ctx.chat.id, `Stopping application... please wait`).catch((e) => { console.log(e) });
-                const code = await execShell(`pm2 stop ${selectedApp}`);
+                const code = await execShell(`pm2 stop ${selectedApp}`)[0];
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
                 else
@@ -117,7 +125,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'restart') {
                 await tgBot.sendMessage(ctx.chat.id, `Restarting application... please wait`).catch((e) => { console.log(e) });
-                const code = await execShell(`pm2 restart ${selectedApp}`);
+                const code = await execShell(`pm2 restart ${selectedApp}`)[0];
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
                 else
@@ -125,7 +133,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'install') {
                 await tgBot.sendMessage(ctx.chat.id, `Installing application... please wait`).catch((e) => { console.log(e) });
-                const code = await execShell(`npm install`);
+                const code = await execShell(`npm install`)[0];
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
                 else
@@ -146,11 +154,13 @@ function validateTelegram(ctx) {
 
 async function execShell(cmd) {
     let code = null;
+    let stdout;
 
-    shell.exec(cmd, { shell: '/bin/bash', stdio: 'inherit' }, (result, stdout, stderr) => {
+    shell.exec(cmd, { shell: '/bin/bash', stdio: 'inherit' }, (result, output, stderr) => {
         console.log('Command:', cmd);
         console.log('Exit code:', result);
         code = result;
+        stdout = output;
         // console.log('Program output:', stdout);
         // console.log('Program stderr:', stderr);
     });
@@ -159,7 +169,7 @@ async function execShell(cmd) {
         await sleep(100);
     }
 
-    return code;
+    return [code, output];
 }
 
 function fetchApplications() {
