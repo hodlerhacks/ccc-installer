@@ -53,9 +53,9 @@ function initTelegram() {
     });
     tgBot.onText(/\/status/, async ctx => {
         if (!validateTelegram(ctx)) return;
-        const [code, output] = await execShell(`pm2 status`);
+        const [code, stdout] = await execShell(`pm2 status`);
         if (code == 0)
-            tgBot.sendMessage(ctx.chat.id, `No apps installed`).catch((e) => { console.log(e) });
+            tgBot.sendMessage(ctx.chat.id, stdout).catch((e) => { console.log(e) });
         else
             await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
     });
