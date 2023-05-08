@@ -147,8 +147,8 @@ function handleAppAction(selectedApp, ctx) {
 }
 
 function parsePm2Status(stdout) {
-    let result = '<pre>';
-
+    let apps = [];
+    let maxNameLength = 0;
     const lines = stdout.split('\n');
 
     const headers = lines[1];
@@ -161,10 +161,24 @@ function parsePm2Status(stdout) {
         const columns = line.split('│');
 
         if (columns[0].trim() == 'Module') break;
-        if (columns.length >= statusIndex)
-            result += `${columns[nameIndex]?.trim()}: ${columns[statusIndex]?.trim()}\n`;
+        if (columns.length >= statusIndex) {
+            const name = columns[nameIndex].trim();
+            const status = columns[statusIndex].trim();
 
+            maxNameLength = Math.max(maxNameLength, name.length);
+
+            apps.push({
+                name: name,
+                status: status,
+            });
+        }
     }
+
+    let result = '<pre>';
+
+    apps.forEach(app => {
+        result += `${app.name.padEnd(maxNameLength + 1, ' ')}: ${app.status}\n`;
+    });
 
     result += '</pre>';
 
