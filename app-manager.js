@@ -169,7 +169,7 @@ async function execShell(cmd) {
         await sleep(100);
     }
 
-    return [code, output];
+    return [code, stdout];
 }
 
 function fetchApplications() {
