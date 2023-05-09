@@ -115,9 +115,9 @@ function handleAppAction(selectedApp, ctx) {
                 } else {
                     await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
                     // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-                    const [code0, stdout0] = await execShell(`pm2 stop ${selectedApp} || true`)[0];
-                    const [code1, stdout1] = await execShell(`pm2 start "${main}" --name="${selectedApp}"`)[0];
-                    const [code2, stdout2] = await execShell(`pm2 save`)[0];
+                    const [code0, stdout0] = await execShell(`pm2 stop ${selectedApp} || true`);
+                    const [code1, stdout1] = await execShell(`pm2 start "${main}" --name="${selectedApp}"`);
+                    const [code2, stdout2] = await execShell(`pm2 save`);
                     if (code1 + code2 == 0)
                         await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
                     else 
@@ -126,7 +126,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'stop') {
                 await tgBot.sendMessage(ctx.chat.id, `Stopping application... please wait`).catch((e) => { console.log(e) });
-                const [code, stdout] = await execShell(`pm2 stop ${selectedApp}`)[0];
+                const [code, stdout] = await execShell(`pm2 stop ${selectedApp}`);
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
                 else
@@ -134,7 +134,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'restart') {
                 await tgBot.sendMessage(ctx.chat.id, `Restarting application... please wait`).catch((e) => { console.log(e) });
-                const [code, stdout] = await execShell(`pm2 restart ${selectedApp}`)[0];
+                const [code, stdout] = await execShell(`pm2 restart ${selectedApp}`);
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
                 else
@@ -142,7 +142,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'install') {
                 await tgBot.sendMessage(ctx.chat.id, `Installing application... please wait`).catch((e) => { console.log(e) });
-                const [code, stdout] = await execShell(`npm install`)[0];
+                const [code, stdout] = await execShell(`npm install`);
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
                 else
