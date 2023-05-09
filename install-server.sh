@@ -2,7 +2,7 @@
 #!/bin/bash
 # To install: wget -P /tmp -L https://raw.githubusercontent.com/hodlerhacks/ccc-installer/master/install-server.sh; bash /tmp/install-server.sh
 ##################################################################################
-VERSION="1.0.0"
+VERSION="1.0.1"
 APPPATH=/var/opt
 INSTALLERFOLDER=ccc-installer
 APPSCRIPTREPOSITORY=https://github.com/hodlerhacks/ccc-installer.git
