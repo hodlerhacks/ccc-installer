@@ -154,7 +154,6 @@ function handleAppAction(selectedApp, ctx) {
 }
 
 function parsePm2Status(stdout, appnames) {
-    appnames.push('App-Manager');
     let apps = [];
     let maxNameLength = 11;
     let maxVersionLength = 7;
@@ -166,6 +165,10 @@ function parsePm2Status(stdout, appnames) {
     const statusIndex = columnNames.indexOf('status');
     const versionIndex = columnNames.indexOf('version');
 
+    appnames.forEach(appname => {
+        maxNameLength = Math.max(maxNameLength, appname.length);
+    });
+        
     for (let i = 3; i < lines.length; i++) {
         const line = lines[i].trim();
         const columns = line.split('│');
@@ -177,7 +180,6 @@ function parsePm2Status(stdout, appnames) {
             const version = columns[versionIndex].trim();
 
             if (appnames.includes(name)) {
-                maxNameLength = Math.max(maxNameLength, name.length);
                 maxVersionLength = Math.max(maxVersionLength, version.length);
     
                 apps.push({
@@ -199,8 +201,13 @@ function parsePm2Status(stdout, appnames) {
     result += `${header.name.padEnd(maxNameLength + 1, ' ')}| ${header.version.padStart(maxVersionLength, ' ')} | ${header.status}\n`;
     result += `${''.padEnd(maxNameLength + + maxVersionLength + 13, '-')}\n`;
 
-    apps.forEach(app => {
-        result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.version.padStart(maxVersionLength, ' ')} | ${app.status}\n`;
+    appnames.forEach(appname => {
+        const match = apps.find(app => app.name == appname);
+        if (match)
+            result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.version.padStart(maxVersionLength, ' ')} | ${app.status}\n`;
+        else
+            result += `${appname.padEnd(maxNameLength + 1, ' ')}| ${'n/a'.padStart(maxVersionLength, ' ')} | offline\n`;
+
     });
 
     result += '</pre>';
