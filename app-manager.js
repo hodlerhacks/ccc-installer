@@ -204,7 +204,7 @@ function parsePm2Status(stdout, appnames) {
     appnames.forEach(appname => {
         const match = apps.find(app => app.name == appname);
         if (match)
-            result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.version.padStart(maxVersionLength, ' ')} | ${app.status}\n`;
+            result += `${match.name.padEnd(maxNameLength + 1, ' ')}| ${match.version.padStart(maxVersionLength, ' ')} | ${match.status}\n`;
         else
             result += `${appname.padEnd(maxNameLength + 1, ' ')}| ${'n/a'.padStart(maxVersionLength, ' ')} | offline\n`;
 
