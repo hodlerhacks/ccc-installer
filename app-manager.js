@@ -154,6 +154,7 @@ function handleAppAction(selectedApp, ctx) {
 }
 
 function parsePm2Status(stdout, appnames) {
+    appnames.push('App-Manager');
     let apps = [];
     let maxNameLength = 11;
     let maxVersionLength = 7;
