@@ -53,13 +53,20 @@ function initTelegram() {
     });
     tgBot.onText(/\/status/, async ctx => {
         if (!validateTelegram(ctx)) return;
-        const [code, stdout] = await execShell(`pm2 status`);
-        if (code == 0) {
-            const result = parsePm2Status(stdout);
-            tgBot.sendMessage(ctx.chat.id, result, { parse_mode: 'HTML' }).catch((e) => { console.log(e) });
+
+        const apps = fetchApplications();
+
+        if (apps.length == 0) {
+            tgBot.sendMessage(ctx.chat.id, `No apps installed`).catch((e) => { console.log(e) });
+        } else {
+            const [code, stdout] = await execShell(`pm2 status`);
+            if (code == 0) {
+                const result = parsePm2Status(stdout, apps);
+                tgBot.sendMessage(ctx.chat.id, result, { parse_mode: 'HTML' }).catch((e) => { console.log(e) });
+            }
+            else
+                await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
         }
-        else
-            await tgBot.sendMessage(ctx.chat.id, `Something went wrong - check console for errors`).catch((e) => { console.log(e) });
     });
 }
 
@@ -108,9 +115,9 @@ function handleAppAction(selectedApp, ctx) {
                 } else {
                     await tgBot.sendMessage(ctx.chat.id, `Starting application... please wait`).catch((e) => { console.log(e) });
                     // First stop to avoid duplicate processes running, '|| true' to avoid errors in case no process exists yet
-                    const code0 = await execShell(`pm2 stop ${selectedApp} || true`)[0];
-                    const code1 = await execShell(`pm2 start "${main}" --name="${selectedApp}"`)[0];
-                    const code2 = await execShell(`pm2 save`)[0];
+                    const [code0, stdout0] = await execShell(`pm2 stop ${selectedApp} || true`)[0];
+                    const [code1, stdout1] = await execShell(`pm2 start "${main}" --name="${selectedApp}"`)[0];
+                    const [code2, stdout2] = await execShell(`pm2 save`)[0];
                     if (code1 + code2 == 0)
                         await tgBot.sendMessage(ctx.chat.id, `Application started`).catch((e) => { console.log(e) });
                     else 
@@ -119,7 +126,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'stop') {
                 await tgBot.sendMessage(ctx.chat.id, `Stopping application... please wait`).catch((e) => { console.log(e) });
-                const code = await execShell(`pm2 stop ${selectedApp}`)[0];
+                const [code, stdout] = await execShell(`pm2 stop ${selectedApp}`)[0];
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Application stopped`).catch((e) => { console.log(e) });
                 else
@@ -127,7 +134,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'restart') {
                 await tgBot.sendMessage(ctx.chat.id, `Restarting application... please wait`).catch((e) => { console.log(e) });
-                const code = await execShell(`pm2 restart ${selectedApp}`)[0];
+                const [code, stdout] = await execShell(`pm2 restart ${selectedApp}`)[0];
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Application restarted`).catch((e) => { console.log(e) });
                 else
@@ -135,7 +142,7 @@ function handleAppAction(selectedApp, ctx) {
             }
             if (selection == 'install') {
                 await tgBot.sendMessage(ctx.chat.id, `Installing application... please wait`).catch((e) => { console.log(e) });
-                const code = await execShell(`npm install`)[0];
+                const [code, stdout] = await execShell(`npm install`)[0];
                 if (code == 0)
                     await tgBot.sendMessage(ctx.chat.id, `Installation completed`).catch((e) => { console.log(e) });
                 else
@@ -146,45 +153,53 @@ function handleAppAction(selectedApp, ctx) {
     });
 }
 
-function parsePm2Status(stdout) {
+function parsePm2Status(stdout, appnames) {
     let apps = [];
     let maxNameLength = 11;
+    let maxVersionLength = 7;
     const lines = stdout.split('\n');
 
     const headers = lines[1];
     const columnNames = headers.split('│').map((name) => name.trim());
     const nameIndex = columnNames.indexOf('name');
     const statusIndex = columnNames.indexOf('status');
+    const versionIndex = columnNames.indexOf('version');
 
     for (let i = 3; i < lines.length; i++) {
         const line = lines[i].trim();
         const columns = line.split('│');
 
-        if (columns[0].trim() == 'Module') break;
-        if (columns.length >= statusIndex) {
+        // if (columns[0].trim() == 'Module') break;
+        if (columns.length >= statusIndex && columns.length >= versionIndex) {
             const name = columns[nameIndex].trim();
             const status = columns[statusIndex].trim();
+            const version = columns[versionIndex].trim();
 
-            maxNameLength = Math.max(maxNameLength, name.length);
-
-            apps.push({
-                name: name,
-                status: status,
-            });
+            if (appnames.includes(name)) {
+                maxNameLength = Math.max(maxNameLength, name.length);
+                maxVersionLength = Math.max(maxVersionLength, version.length);
+    
+                apps.push({
+                    name,
+                    version, 
+                    status,
+                });
+            }
         }
     }
 
     const header = {
         name: 'Application',
+        version: 'Version',
         status: 'Status',
     };
 
     let result = '<pre>';
-    result += `${header.name.padEnd(maxNameLength + 1, ' ')}| ${header.status}\n`;
-    result += `${''.padEnd(maxNameLength + 10, '-')}\n`;
+    result += `${header.name.padEnd(maxNameLength + 1, ' ')}| ${header.version.padStart(maxVersionLength, ' ')} | ${header.status}\n`;
+    result += `${''.padEnd(maxNameLength + + maxVersionLength + 13, '-')}\n`;
 
     apps.forEach(app => {
-        result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.status}\n`;
+        result += `${app.name.padEnd(maxNameLength + 1, ' ')}| ${app.version.padStart(maxVersionLength, ' ')} | ${app.status}\n`;
     });
 
     result += '</pre>';
@@ -209,8 +224,6 @@ async function execShell(cmd) {
         console.log('Exit code:', result);
         code = result;
         stdout = output;
-        // console.log('Program output:', stdout);
-        // console.log('Program stderr:', stderr);
     });
 
     while (code == null) {

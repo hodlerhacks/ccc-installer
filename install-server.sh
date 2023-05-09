@@ -237,7 +237,7 @@ until [ "$selection" = "0" ]; do
 	echo "      r  -  Re-start App Manager"
 	echo "" 
 	echo "      c  -  Change Telegram settings"
-	echo "      u  -  Update Installer"
+	echo "      u  -  Update Installer & App Manager"
 	echo ""
 	echo "      0  -  Exit"
 	echo ""
