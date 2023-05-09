@@ -143,20 +143,7 @@ script_update() {
 }
 
 script_refresh() {
-    echo "Reloading script..."
-    sleep 1  # Wait for 1 second to allow any pending output or processes to complete
-
-    # Capture the PID of the original script
-    original_pid=$(pgrep -f "/bin/bash $APPPATH/$INSTALLERFOLDER/install-server.sh")
-
-    # Start the script again
     /bin/bash "$APPPATH/$INSTALLERFOLDER/install-server.sh" &
-
-    # Wait for the new process to start
-    sleep 1
-
-    # Kill the original script process
-    kill "$original_pid"
 }
 
 reload_shell() {
