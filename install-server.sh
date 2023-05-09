@@ -2,7 +2,7 @@
 #!/bin/bash
 # To install: wget -P /tmp -L https://raw.githubusercontent.com/hodlerhacks/ccc-installer/master/install-server.sh; bash /tmp/install-server.sh
 ##################################################################################
-VERSION="1.0.0"
+VERSION="1.0.2"
 APPPATH=/var/opt
 INSTALLERFOLDER=ccc-installer
 APPSCRIPTREPOSITORY=https://github.com/hodlerhacks/ccc-installer.git
@@ -133,13 +133,17 @@ script_install() {
 	check_bashrc_shortcuts
 }
 
-script_update() {
-	script_install
-
+check_new_install() {
 	if [ -f /tmp/install-server.sh ]; then
 		rm -r /tmp/install-server.sh
+		script_install
 		script_refresh
 	fi
+}
+
+script_update() {
+	script_install
+	script_refresh
 }
 
 script_refresh() {
@@ -232,7 +236,7 @@ if [[ $EUID -ne 0 ]]; then
    	exit 1
 fi
 
-script_update
+check_new_install
 
 until [ "$selection" = "0" ]; do
 	clear
@@ -266,7 +270,7 @@ until [ "$selection" = "0" ]; do
 		t ) clear ; stop_app ; press_enter ;;
 		r ) clear ; restart_app ; press_enter ;;
 		c ) clear ; configure_telegram ;;
-		u ) clear ; script_update; press_enter; script_refresh ;;
+		u ) clear ; script_update; press_enter ;;
 		0 ) clear ; reload_shell ;;
 		* ) clear ; incorrect_selection ; press_enter ;;
 	esac
