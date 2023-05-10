@@ -153,13 +153,22 @@ script_refresh() {
 	# Allow any pending output or processes to complete
     sleep 1
 
-    original_pid=$(pgrep -f "/bin/bash $APPPATH/$INSTALLERFOLDER/install-server.sh")
+    # original_pid=$(pgrep -f install-server.sh)
 
     # Restart script
-    /bin/bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
+    bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
 
     # Kill the original script process
-    kill "$original_pid"
+    # kill "$original_pid"
+	# Retrieve all process IDs (PIDs) of processes with the name install-server.sh
+    pids=($(pgrep -f "install-server.sh"))
+
+    # Kill each process individually
+    for pid in "${pids[@]}"; do
+        if [ "$pid" != "$$" ]; then  # Skip the current process (script_refresh) to avoid terminating itself
+            kill "$pid"
+        fi
+    done
 }
 
 reload_shell() {
@@ -270,7 +279,8 @@ until [ "$selection" = "0" ]; do
 		r ) clear ; restart_app ; press_enter ;;
 		c ) clear ; configure_telegram ;;
 		u ) clear ; script_update; press_enter ;;
-		0 ) clear ; reload_shell ;;
+		99 ) clear ; reload_shell ;;
+		0 ) clear ; pkill -f "install-server.sh" ;;
 		* ) clear ; incorrect_selection ; press_enter ;;
 	esac
 done
