@@ -2,7 +2,7 @@
 #!/bin/bash
 # To install: wget -P /tmp -L https://raw.githubusercontent.com/hodlerhacks/ccc-installer/master/install-server.sh; bash /tmp/install-server.sh
 ##################################################################################
-VERSION="1.0.0"
+VERSION="1.0.1"
 APPPATH=/var/opt
 INSTALLERFOLDER=ccc-installer
 APPSCRIPTREPOSITORY=https://github.com/hodlerhacks/ccc-installer.git
@@ -153,21 +153,15 @@ script_refresh() {
 	# Allow any pending output or processes to complete
     sleep 1
 
-    # original_pid=$(pgrep -f install-server.sh)
+	# Retrieve all current process IDs
+    pids=($(pgrep -f "install-server.sh"))
 
     # Restart script
     bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
 
-    # Kill the original script process
-    # kill "$original_pid"
-	# Retrieve all process IDs (PIDs) of processes with the name install-server.sh
-    pids=($(pgrep -f "install-server.sh"))
-
-    # Kill each process individually
+    # Kill each of the old processes
     for pid in "${pids[@]}"; do
-        if [ "$pid" != "$$" ]; then  # Skip the current process (script_refresh) to avoid terminating itself
-            kill "$pid"
-        fi
+		kill "$pid"
     done
 }
 
@@ -279,7 +273,6 @@ until [ "$selection" = "0" ]; do
 		r ) clear ; restart_app ; press_enter ;;
 		c ) clear ; configure_telegram ;;
 		u ) clear ; script_update; press_enter ;;
-		99 ) clear ; reload_shell ;;
 		0 ) clear ; pkill -f "install-server.sh" ;;
 		* ) clear ; incorrect_selection ; press_enter ;;
 	esac
