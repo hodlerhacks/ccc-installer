@@ -158,7 +158,7 @@ script_refresh() {
 
     # Restart script
 #    bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
-	./$(basename $0) && exit
+	sudo ./$(basename $0) && exit
 
     # Kill each of the old processes
 #    for pid in "${pids[@]}"; do
