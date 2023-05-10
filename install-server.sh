@@ -161,7 +161,7 @@ script_refresh() {
 
     # Kill each of the old processes
     for pid in "${pids[@]}"; do
-		kill "$pid"
+		kill -f "$pid"
     done
 }
 
