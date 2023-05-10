@@ -158,7 +158,7 @@ script_refresh() {
 
     # Restart script
 #    bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
-	bash "$APPPATH/$INSTALLERFOLDER/install-server.sh" && exit
+	exec bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
 
     # Kill each of the old processes
 #    for pid in "${pids[@]}"; do
