@@ -2,7 +2,7 @@
 #!/bin/bash
 # To install: wget -P /tmp -L https://raw.githubusercontent.com/hodlerhacks/ccc-installer/master/install-server.sh; bash /tmp/install-server.sh
 ##################################################################################
-VERSION="1.0.3"
+VERSION="1.0.0"
 APPPATH=/var/opt
 INSTALLERFOLDER=ccc-installer
 APPSCRIPTREPOSITORY=https://github.com/hodlerhacks/ccc-installer.git
@@ -147,17 +147,16 @@ script_update() {
 }
 
 script_refresh() {
+	echo ""
     echo "Reloading script..."
-    sleep 1  # Wait for 1 second to allow any pending output or processes to complete
 
-    # Capture the PID of the original script
+	# Allow any pending output or processes to complete
+    sleep 1
+
     original_pid=$(pgrep -f "/bin/bash $APPPATH/$INSTALLERFOLDER/install-server.sh")
 
-    # Start the script again
+    # Restart script
     /bin/bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
-
-    # Wait for the new process to start
-    sleep 1
 
     # Kill the original script process
     kill "$original_pid"
