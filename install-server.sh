@@ -156,19 +156,12 @@ script_refresh() {
 	# Retrieve all current process IDs
     pids=($(pgrep -f "install-server.sh"))
 
-	echo @pids
-    for pid in "${pids[@]}"; do
-		echo $pid
-    done
-	press_enter
-
     # Restart script
     bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
 
     # Kill each of the old processes
     for pid in "${pids[@]}"; do
-		echo $pid
-		kill -f "$pid"
+		kill -9 "$pid"
     done
 }
 
