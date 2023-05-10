@@ -157,6 +157,10 @@ script_refresh() {
     pids=($(pgrep -f "install-server.sh"))
 
 	echo @pids
+    for pid in "${pids[@]}"; do
+		echo $pid
+    done
+	press_enter
 
     # Restart script
     bash "$APPPATH/$INSTALLERFOLDER/install-server.sh"
@@ -166,8 +170,6 @@ script_refresh() {
 		echo $pid
 		kill -f "$pid"
     done
-
-	press_enter
 }
 
 reload_shell() {
